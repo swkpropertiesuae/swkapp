@@ -1,13 +1,22 @@
 # SWK Daily
 
-Offline-first PWA for SWK Properties staff, modelled on the SWK ONE staff portal (Attendance, Manual, utilities).
+Staff attendance, daily tasks and UAE deal calculators for SWK Properties, with login and a manager dashboard.
 
-- **Home**: check in/out (optional GPS), task ring, week strip, daily work summary.
-- **Tasks**: daily checklist plus repeat-daily routine.
-- **Tools**: cost to close, mortgage, yield, commission split, RERA rent increase, short manual.
-- **History**: monthly attendance, hours, CSV export.
+## Features
+- **Staff:** check in/out (server clock, optional GPS), task list with repeat-daily routine, work summary, monthly history, calculators (cost to close, mortgage, yield, commission split, RERA rent increase).
+- **Manager:** live "who is in today" board with tasks and summaries, monthly report per person, team CSV export, add staff, deactivate, reset passwords.
+- **Security:** scrypt password hashing, HttpOnly SameSite=Strict session cookie (tokens stored hashed), login throttling (5 failures = 15 min lock), forced password change for temporary passwords, JSON-only and same-origin checks on writes, CSV formula-injection guard, strict CSP.
 
-Run: `python3 -m http.server 8080` then open http://localhost:8080 (service worker needs localhost or HTTPS).
-Test: `node calc.test.mjs`.
+## Run
+Needs Node 22.13+. No npm dependencies.
 
-Data lives in browser localStorage only. No server, no sync, no login. Calculators are indicative.
+```bash
+cp .env.example .env     # set SWK_ADMIN_EMAIL and SWK_ADMIN_PASSWORD (min 10 chars)
+npm start                # http://localhost:8080
+npm test
+```
+The first start creates the manager from those variables. Create staff in the Team tab; they must change their temporary password at first sign-in.
+
+## Deploy notes
+Serve over HTTPS and set `SECURE_COOKIES=1`. Data is one SQLite file (`DB_PATH`, default `data/swk.db`): back it up. Days roll over at midnight Asia/Dubai.
+Calculator rates (4% DLD, 2% agency, RERA bands) are indicative.

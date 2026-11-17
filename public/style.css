@@ -27,3 +27,9 @@ label.chk.done span{text-decoration:line-through;color:var(--dim)}
 #nav button{flex:1;padding:14px 0 12px;background:none;border:0;color:var(--dim);font-size:12px}
 #nav button.on{color:var(--gold);font-weight:700}
 details{border-bottom:1px solid var(--line)}summary{padding:14px 0;font-weight:600;cursor:pointer}details>div{padding-bottom:14px}
+.mt{margin-top:10px}.nb{border:0}.gold{background:var(--gold);color:#14110f}.bad{color:var(--stop);min-height:1.4em}.ok{color:var(--go)}
+a.btn{display:block;text-align:center;text-decoration:none;margin-top:14px}
+form .punch{margin-top:6px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}th,td{text-align:left;padding:8px 4px;border-bottom:1px solid var(--line)}th{color:var(--dim);font-size:12px;font-weight:600}
+summary.kv{border:0}[hidden]{display:none!important}
+#nav button#out{color:var(--dim)}
