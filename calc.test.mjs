@@ -12,3 +12,7 @@ assert.equal(reraIncrease(80, 100).pct, 5); assert.equal(reraIncrease(100, 100).
 assert.equal(hoursBetween('2026-01-01T09:00:00Z', '2026-01-01T17:30:00Z'), 8.5)
 assert.match(toCsv([{ date: '2026-01-01', in: '2026-01-01T09:00:00Z', out: '2026-01-01T17:00:00Z', summary: 'a, "b"', tasks: [{ text: 'x', done: true }] }]), /"a, ""b"""/)
 console.log('ok')
+import { weekKeys } from './calc.js'
+const w = weekKeys(new Date(2026, 10, 17)) // Tue
+assert.equal(w[0], '2026-11-16'); assert.equal(w[6], '2026-11-22')
+console.log('week ok')

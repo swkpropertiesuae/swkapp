@@ -44,3 +44,9 @@ export function toCsv(rows) {
     (r.tasks || []).filter(t => t.done).map(t => t.text).join('; '), r.summary || ''])
   return [head, ...body].map(l => l.map(csvEscape).join(',')).join('\n')
 }
+
+// Monday-first 7 day keys of the week containing `d`.
+export function weekKeys(d = new Date()) {
+  const m = new Date(d); m.setDate(d.getDate() - ((d.getDay() + 6) % 7))
+  return [...Array(7)].map((_, i) => { const x = new Date(m); x.setDate(m.getDate() + i); return dayKey(x) })
+}
