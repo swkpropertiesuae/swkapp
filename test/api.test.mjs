@@ -1,21 +1,21 @@
 import { test, before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
-import fs from 'node:fs'
-import os from 'node:os'
-import path from 'node:path'
+import pg from 'pg'
 
-const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'swk-'))
+// Needs a Postgres: TEST_DATABASE_URL=postgres://... npm test. Uses a throwaway schema.
+const URL_ = process.env.TEST_DATABASE_URL, SCHEMA = 'swk_test_' + Math.random().toString(36).slice(2, 8)
 const PORT = 18000 + Math.floor(Math.random() * 1000), B = `http://127.0.0.1:${PORT}`
 let proc
 
 before(async () => {
+  if (!URL_) return
   proc = spawn(process.execPath, ['--disable-warning=ExperimentalWarning', 'server.js'], {
-    env: { ...process.env, PORT, DB_PATH: path.join(dir, 't.db'), SWK_ADMIN_EMAIL: 'boss@x.test', SWK_ADMIN_PASSWORD: 'boss-password-1' }, stdio: 'ignore' })
+    env: { ...process.env, PORT, DATABASE_URL: URL_, DB_SCHEMA: SCHEMA, SWK_ADMIN_EMAIL: 'boss@x.test', SWK_ADMIN_PASSWORD: 'boss-password-1' }, stdio: 'ignore' })
   for (let i = 0; i < 50; i++) { try { await fetch(B + '/'); return } catch { await new Promise(r => setTimeout(r, 100)) } }
   throw new Error('server did not start')
 })
-after(() => { proc.kill(); fs.rmSync(dir, { recursive: true, force: true }) })
+after(async () => { proc?.kill(); if (!URL_) return; const c = new pg.Client({ connectionString: URL_ }); await c.connect(); await c.query(`DROP SCHEMA IF EXISTS ${SCHEMA} CASCADE`); await c.end() })
 
 // tiny client that keeps its own cookie
 const client = () => {
@@ -28,7 +28,8 @@ const client = () => {
   }
 }
 
-test('flow: login, staff punch, manager sees it', async () => {
+const T = URL_ ? test : (n, f) => test(n, { skip: 'set TEST_DATABASE_URL' }, f)
+T('flow: login, staff punch, manager sees it', async () => {
   const boss = client(), anon = client()
   assert.equal((await anon('GET', '/api/me')).status, 401)
   assert.equal((await anon('POST', '/api/login', { email: 'boss@x.test', password: 'nope' })).status, 401)
@@ -72,7 +73,7 @@ test('flow: login, staff punch, manager sees it', async () => {
   assert.equal((await boss('PATCH', `/api/users/${l.body.id}`, { active: false })).status, 409)
 })
 
-test('csrf: non-JSON and foreign origin rejected; path traversal blocked; lockout', async () => {
+T('csrf: non-JSON and foreign origin rejected; path traversal blocked; lockout', async () => {
   const c = client()
   assert.equal((await fetch(B + '/api/login', { method: 'POST', headers: { 'content-type': 'text/plain' }, body: '{}' })).status, 415)
   assert.equal((await fetch(B + '/api/login', { method: 'POST', headers: { 'content-type': 'application/json', origin: 'http://evil.test' }, body: '{}' })).status, 403)
